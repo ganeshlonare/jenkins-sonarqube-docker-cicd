@@ -24,14 +24,22 @@ pipeline {
                 sh 'mvn test'
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'Build & Test successful'
+            echo 'CI + SonarQube analysis successful'
         }
         failure {
-            echo 'Build failed'
+            echo 'Pipeline failed'
         }
     }
 }
