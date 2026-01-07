@@ -6,3 +6,11 @@ management:
   endpoint:
     prometheus:
       enabled: true
+
+
+logging:
+  file:
+    name: /var/log/app/app.log
+  level:
+    root: INFO
+    com.example.demo: DEBUG
