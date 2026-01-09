@@ -35,9 +35,29 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t spring-boot-crud:latest .'
+                sh 'docker build -t ganeshlonare/spring-boot-crud:latest .'
             }
         }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                      docker push ganeshlonare/spring-boot-crud:latest
+                      docker logout
+                    '''
+                }
+            }
+        }
+
+
     }
 
     post {
