@@ -3,3 +3,5 @@
 2. Added Monitoring
 
 3. Added docker build and push ci cd
+
+4. Added timestamps to docker image
