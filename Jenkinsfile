@@ -5,6 +5,11 @@ pipeline {
         maven 'Maven'
     }
 
+    environment {
+        IMAGE_NAME = 'ganeshlonare/spring-boot-crud'
+        TIMESTAMP  = "${new Date().format('yyyy-MM-dd-HHmm')}"
+    }
+
     stages {
 
         stage('Checkout') {
@@ -25,21 +30,18 @@ pipeline {
             }
         }
 
-//         stage('SonarQube Analysis') {
-//             steps {
-//                 withSonarQubeEnv('sonar') {
-//                     sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
-//                 }
-//             }
-//         }
-
-        stage('Build Docker Image') {
+        // SonarQube
+        /*
+        stage('SonarQube Analysis') {
             steps {
-                sh 'docker build -t ganeshlonare/spring-boot-crud:latest .'
+                withSonarQubeEnv('sonar') {
+                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
+                }
             }
         }
+        */
 
-        stage('Push Docker Image') {
+        stage('Backup Previous Docker Image (if exists)') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -50,19 +52,49 @@ pipeline {
                 ]) {
                     sh '''
                       echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                      docker push ganeshlonare/spring-boot-crud:latest
+
+                      if docker pull $IMAGE_NAME:latest; then
+                        echo "Previous image found. Tagging with timestamp..."
+                        docker tag $IMAGE_NAME:latest $IMAGE_NAME:$TIMESTAMP
+                        docker push $IMAGE_NAME:$TIMESTAMP
+                      else
+                        echo "No previous image found. First run."
+                      fi
+
                       docker logout
                     '''
                 }
             }
         }
 
+        stage('Build New Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:latest .'
+            }
+        }
 
+        stage('Push New Docker Image (latest)') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                      docker push $IMAGE_NAME:latest
+                      docker logout
+                    '''
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'CI + SonarQube analysis successful'
+            echo "CI successful. Previous image backed up as: $TIMESTAMP"
         }
         failure {
             echo 'Pipeline failed'
