@@ -32,6 +32,12 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t spring-boot-crud:latest .'
+            }
+        }
     }
 
     post {
