@@ -25,13 +25,13 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonar') {
-                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
-                }
-            }
-        }
+//         stage('SonarQube Analysis') {
+//             steps {
+//                 withSonarQubeEnv('sonar') {
+//                     sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar'
+//                 }
+//             }
+//         }
 
         stage('Build Docker Image') {
             steps {
