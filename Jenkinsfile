@@ -96,8 +96,31 @@ pipeline {
         success {
             echo "CI successful. Previous image backed up as: $TIMESTAMP"
         }
+
         failure {
-            echo 'Pipeline failed'
+            echo "Pipeline failed. Restoring previous Docker image as latest..."
+
+            withCredentials([
+                usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )
+            ]) {
+                sh '''
+                  echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                  if docker pull $IMAGE_NAME:$TIMESTAMP; then
+                    docker tag $IMAGE_NAME:$TIMESTAMP $IMAGE_NAME:latest
+                    docker push $IMAGE_NAME:latest
+                    echo "Rollback complete: latest now points to previous image"
+                  else
+                    echo "Rollback skipped: no backup image found"
+                  fi
+
+                  docker logout
+                '''
+            }
         }
     }
 }
