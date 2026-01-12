@@ -3,3 +3,4 @@
 3. Added docker build and push ci cd
 4. Added timestamps to docker image
 5. Added Failure support
+6. added run stage
