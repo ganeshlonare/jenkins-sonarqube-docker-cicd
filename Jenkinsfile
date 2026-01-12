@@ -90,6 +90,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Run Docker Container') {
+            steps {
+                sh '''
+                  docker stop spring-boot-app || true
+                  docker rm spring-boot-app || true
+
+                  docker run -d \
+                    --name spring-boot-app \
+                    -p 8081:8081 \
+                    ganeshlonare/spring-boot-crud:latest
+                '''
+            }
+        }
+
     }
 
     post {
