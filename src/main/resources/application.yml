@@ -3,10 +3,24 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+
   endpoint:
     prometheus:
       enabled: true
 
+  metrics:
+    enable:
+      all: true
+      http.server.requests: true
+      jvm.memory.used: true
+      jvm.gc.pause: true
+      process.uptime: true
+
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
 
 logging:
   file:

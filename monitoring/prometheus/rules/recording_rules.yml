@@ -1,0 +1,46 @@
+groups:
+
+  - name: downsampling_5m
+    interval: 5m
+    rules:
+
+      # Request rate
+      - record: http_requests:rate5m
+        expr: rate(http_server_requests_seconds_count[5m])
+
+      # Error rate
+      - record: http_errors:rate5m
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m])
+
+      # Latency percentiles
+      - record: http_latency:p50:5m
+        expr: histogram_quantile(0.50, rate(http_server_requests_seconds_bucket[5m]))
+
+      - record: http_latency:p95:5m
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m]))
+
+      - record: http_latency:p99:5m
+        expr: histogram_quantile(0.99, rate(http_server_requests_seconds_bucket[5m]))
+
+      # Container CPU
+      - record: container_cpu:avg5m
+        expr: avg(rate(container_cpu_usage_seconds_total[5m])) by (container_name)
+
+      # Container Memory
+      - record: container_memory:avg5m
+        expr: avg(container_memory_usage_bytes) by (container_name)
+
+
+
+  - name: downsampling_1h
+    interval: 1h
+    rules:
+
+      - record: http_requests:rate1h
+        expr: avg_over_time(http_requests:rate5m[1h])
+
+      - record: http_errors:rate1h
+        expr: avg_over_time(http_errors:rate5m[1h])
+
+      - record: service_availability:1h
+        expr: avg_over_time(up[1h])
